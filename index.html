@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Scout - Mountain Quail Hunting Intelligence</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #e8f5e9 0%, #fff8e1 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.95;
+    }
+
+    .chat-container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      padding: 16px 20px;
+      border-radius: 12px;
+      max-width: 85%;
+      line-height: 1.6;
+    }
+
+    .message.user {
+      background: #e8f5e9;
+      align-self: flex-end;
+      border: 1px solid #c8e6c9;
+    }
+
+    .message.assistant {
+      background: #f5f5f5;
+      align-self: flex-start;
+      border: 1px solid #e0e0e0;
+    }
+
+    .message.assistant h2 {
+      color: #2e7d32;
+      margin: 20px 0 12px 0;
+      font-size: 24px;
+      border-bottom: 2px solid #66bb6a;
+      padding-bottom: 8px;
+    }
+
+    .message.assistant h3 {
+      color: #424242;
+      margin: 16px 0 8px 0;
+      font-size: 18px;
+    }
+
+    .message.assistant strong {
+      color: #1b5e20;
+    }
+
+    .message.assistant a {
+      color: #1976d2;
+      text-decoration: none;
+    }
+
+    .message.assistant a:hover {
+      text-decoration: underline;
+    }
+
+    .message.assistant p {
+      margin-bottom: 12px;
+    }
+
+    .message.assistant ul {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+
+    .message.assistant li {
+      margin-bottom: 8px;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      background: #fff3e0;
+      border-radius: 12px;
+      border: 1px solid #ffe0b2;
+      align-self: flex-start;
+    }
+
+    .loading .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f57c00;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .input-area {
+      padding: 20px;
+      border-top: 1px solid #e0e0e0;
+      background: #fafafa;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 12px;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    #userInput:focus {
+      outline: none;
+      border-color: #66bb6a;
+    }
+
+    #sendButton {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    #sendButton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+    }
+
+    #sendButton:disabled {
+      background: #bdbdbd;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .welcome {
+      text-align: center;
+      padding: 40px 20px;
+      color: #757575;
+    }
+
+    .welcome h3 {
+      color: #424242;
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+
+    .example {
+      background: #f5f5f5;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 8px 0;
+      cursor: pointer;
+      border: 1px solid #e0e0e0;
+      transition: all 0.2s;
+    }
+
+    .example:hover {
+      background: #e8f5e9;
+      border-color: #66bb6a;
+    }
+
+    .error {
+      background: #ffebee;
+      border: 1px solid #ef5350;
+      color: #c62828;
+      padding: 16px 20px;
+      border-radius: 12px;
+      align-self: flex-start;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 28px;
+      }
+      
+      .chat-container {
+        height: 500px;
+      }
+
+      .message {
+        max-width: 95%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎯 E-Scout</h1>
+      <p>Mountain Quail Hunting Intelligence Agent</p>
+    </div>
+
+    <div class="chat-container">
+      <div class="messages" id="messages">
+        <div class="welcome">
+          <h3>Welcome to E-Scout! 👋</h3>
+          <p>Ask me about Mountain Quail hunting locations in California.</p>
+          <p style="margin-top: 12px; font-size: 14px;">Try asking:</p>
+          <div class="example" onclick="fillExample('Where should I hunt Mountain Quail on October 3rd, 2026?')">
+            "Where should I hunt Mountain Quail on October 3rd, 2026?"
+          </div>
+          <div class="example" onclick="fillExample('I want to hunt in early October, max 4 hour drive from SF, moderate difficulty')">
+            "I want to hunt in early October, max 4 hour drive from SF, moderate difficulty"
+          </div>
+          <div class="example" onclick="fillExample('Best spots for Mountain Quail near Mendocino National Forest this weekend?')">
+            "Best spots for Mountain Quail near Mendocino National Forest this weekend?"
+          </div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div class="input-wrapper">
+          <input 
+            type="text" 
+            id="userInput" 
+            placeholder="Ask about hunting locations, weather, tactics..." 
+            autocomplete="off"
+          />
+          <button id="sendButton" onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById('messages');
+    const userInput = document.getElementById('userInput');
+    const sendButton = document.getElementById('sendButton');
+
+    // Allow Enter key to send
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    function fillExample(text) {
+      userInput.value = text;
+      userInput.focus();
+    }
+
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      // Clear welcome message if present
+      const welcome = messagesDiv.querySelector('.welcome');
+      if (welcome) welcome.remove();
+
+      // Add user message
+      addMessage(message, 'user');
+      
+      // Clear input and disable
+      userInput.value = '';
+      userInput.disabled = true;
+      sendButton.disabled = true;
+
+      // Show loading
+      const loadingId = addLoading();
+
+      try {
+        // Call our serverless function
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message })
+        });
+
+        removeLoading(loadingId);
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to get response');
+        }
+
+        const data = await response.json();
+        addMessage(data.response, 'assistant');
+
+      } catch (error) {
+        removeLoading(loadingId);
+        addError(error.message);
+      } finally {
+        userInput.disabled = false;
+        sendButton.disabled = false;
+        userInput.focus();
+      }
+    }
+
+    function addMessage(text, sender) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${sender}`;
+      
+      if (sender === 'assistant') {
+        // Convert markdown to HTML
+        messageDiv.innerHTML = formatMarkdown(text);
+      } else {
+        messageDiv.textContent = text;
+      }
+      
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function addLoading() {
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'loading';
+      loadingDiv.id = 'loading-' + Date.now();
+      loadingDiv.innerHTML = `
+        <div class="spinner"></div>
+        <div>Searching eBird data and analyzing conditions...</div>
+      `;
+      messagesDiv.appendChild(loadingDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      return loadingDiv.id;
+    }
+
+    function removeLoading(id) {
+      const loading = document.getElementById(id);
+      if (loading) loading.remove();
+    }
+
+    function addError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.innerHTML = `<strong>Error:</strong> ${message}`;
+      messagesDiv.appendChild(errorDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function formatMarkdown(text) {
+      let html = text;
+      
+      // Convert markdown links
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+      
+      // Convert headers
+      html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+      html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+      html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+      
+      // Convert bold
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      
+      // Convert line breaks to paragraphs
+      const paragraphs = html.split('\n\n').map(para => {
+        if (para.trim().startsWith('<h') || para.trim().startsWith('<ul')) {
+          return para;
+        }
+        return `<p>${para.replace(/\n/g, '<br>')}</p>`;
+      }).join('\n');
+      
+      return paragraphs;
+    }
+  </script>
+</body>
+</html>
